@@ -7,11 +7,13 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from useful_phase import *
+from phase_fits_bank import *
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("PI-ICR Analysis")
         MainWindow.resize(669, 554)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
@@ -73,28 +75,13 @@ class Ui_MainWindow(object):
         self.label_7 = QtWidgets.QLabel(self.centralWidget)
         self.label_7.setGeometry(QtCore.QRect(200, 470, 71, 20))
         self.label_7.setObjectName("label_7")
-##        MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 669, 21))
         self.menuBar.setObjectName("menuBar")
         fileMenu = self.menuBar.addMenu('&File')
-##        self.menuFile = QtWidgets.QMenu(self.menuBar)
-##        self.menuFile.setObjectName("menuFile")
-##        MainWindow.setMenuBar(self.menuBar)
-##        self.mainToolBar = QtWidgets.QToolBar(MainWindow)
-##        self.mainToolBar.setObjectName("mainToolBar")
-##        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.mainToolBar)
-##        self.statusBar = QtWidgets.QStatusBar(MainWindow)
-##        self.statusBar.setObjectName("statusBar")
-##        MainWindow.setStatusBar(self.statusBar)
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
-        #self.actionLoad_New_Reference.setObjectName("actionLoad_New_Reference")
-        #self.actionLoad_New_Measurement = QtWidgets.QAction(MainWindow)
-        #self.actionLoad_New_Measurement.setObjectName("actionLoad_New_Measurement")
-        #self.menuFile.addAction(self.actionLoad_New_Reference)
-        #self.menuFile.addAction(self.actionLoad_New_Measurement)
-        #self.menuBar.addAction(self.menuFile.menuAction())
+
 
         self.retranslateUi(MainWindow)
         self.actionLoad_New_Reference.triggered.connect(self.LoadReference)
@@ -102,12 +89,24 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def LoadReference(self):
-        #self.refPhi.setText("Hello!")
-        refFile = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load File', "data", "Text files (*.txt)")
+        refFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Reference File', "data", "Text files (*.txt)")
+        rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
+        rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep = cluster_spots(rXPOS, rYPOS, 1, 1)
+        Clusters = []
+        for i in range(0,len(rxs)):
+            Clusters.append(str(i))
+        self.refClusterSelect.addItems(Clusters)
+        #self.refPhi.setText(rXPOS[0])
+        #print(rXPOS)
 
     def LoadMeasurement(self):
-        #self.measPhi.setText("Hello!")
-        measFile = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load File', "data", "Text files (*.txt)")
+        measFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Measurement File', "data", "Text files (*.txt)")
+        mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
+        mxs, mxserr, mys, myserr, mips, mxkeep, mykeep = cluster_spots(mXPOS, mYPOS, 1, 1)
+        Clusters = []
+        for i in range(0,len(mxs)):
+            Clusters.append(str(i))
+        self.measClusterSelect.addItems(Clusters)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -119,7 +118,6 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "Theta"))
         self.label_6.setText(_translate("MainWindow", "N"))
         self.label_7.setText(_translate("MainWindow", "Frequency"))
-        #self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionLoad_New_Reference.setText(_translate("MainWindow", "Load New Reference"))
         self.actionLoad_New_Measurement.setText(_translate("MainWindow", "Load New Measurement"))
 
