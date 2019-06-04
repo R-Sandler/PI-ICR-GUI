@@ -272,20 +272,20 @@ def cluster_spots(xdata,ydata, radius, *args):
         ips.append(len(xstuff['%i'%i]))
 
 ##
-    ax = plt.subplot(111, aspect = 'equal')
-    plt.xlim(-13,7)
-    plt.ylim(-6,14)
-    colors = ['blue', 'salmon', 'darkorange', 'cadetblue', 'sage', 'yellow', 'green', 'black', 'cyan', 'indianred', 'chartreuse', 'seagreen', 'purple', 'aliceblue']
-    #for i in range(len(X)):
-    #    plt.plot(X[i][0], X[i][1], 'o', color = colors[labels[i]])
-    for k, col in zip(unique(labels), colors):
-        my = labels == k
-        plt.plot(X[my,0], X[my,1], 'o', color = colors[k])
-    for i in range(0,n_clusters_):
-        plt.text(-12,10 - i,'%s: %.1f%%'%(colors[i],100.0*ips[i]/sum(ips)))
-    plt.text(-12,12, 'total:%i'%sum(ips))
-    plt.plot(cluster_center[:,0], cluster_center[:,1], 'p', markersize=10, color = 'black')
-    plt.show()
+##    ax = plt.subplot(111, aspect = 'equal')
+##    plt.xlim(-13,7)
+##    plt.ylim(-6,14)
+##    colors = ['blue', 'salmon', 'darkorange', 'cadetblue', 'sage', 'yellow', 'green', 'black', 'cyan', 'indianred', 'chartreuse', 'seagreen', 'purple', 'aliceblue']
+##    #for i in range(len(X)):
+##    #    plt.plot(X[i][0], X[i][1], 'o', color = colors[labels[i]])
+##    for k, col in zip(unique(labels), colors):
+##        my = labels == k
+##        plt.plot(X[my,0], X[my,1], 'o', color = colors[k])
+##    for i in range(0,n_clusters_):
+##        plt.text(-12,10 - i,'%s: %.1f%%'%(colors[i],100.0*ips[i]/sum(ips)))
+##    plt.text(-12,12, 'total:%i'%sum(ips))
+##    plt.plot(cluster_center[:,0], cluster_center[:,1], 'p', markersize=10, color = 'black')
+##    plt.show()
 
     xs = []
     xserr = []
@@ -317,8 +317,8 @@ def cluster_spots(xdata,ydata, radius, *args):
         ys.append(yfit[0])
         yserr.append(yfit[1])
         ips.append(len(xcut))
-        plt.title('xbins = %i and ybins = %i'%(numbins(xcut), numbins(ycut)))
-    plt.show()
+##        plt.title('xbins = %i and ybins = %i'%(numbins(xcut), numbins(ycut)))
+##    plt.show()
 
 #    df = pd.DataFrame(columns = ['x'])
 #    df['x'] = X[labels>-1][:,0]
