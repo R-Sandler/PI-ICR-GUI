@@ -7,10 +7,9 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+#from PyQt5.QtWidgets import QMessageBox
 import pyqtgraph as pg
-from useful_phase import *
-from phase_fits_bank import *
-from calculator import *
+from Definitions import *
 
 
 class Ui_MainWindow(object):
@@ -80,10 +79,19 @@ class Ui_MainWindow(object):
         self.measGraph = pg.PlotWidget(self.centralWidget)
         self.measGraph.setObjectName("measGraph")
         self.measGraph.setGeometry(QtCore.QRect(680, 30, 500, 500))
+        self.EnterButton = QtWidgets.QPushButton(self.centralWidget)
+        self.EnterButton.setGeometry(450, 640, 60, 60)
+        self.EnterButton.setDefault(False)
+        self.EnterButton.setFlat(False)
+        self.EnterButton.setObjectName("EnterButton")
+        self.EnterButton.setText("Calculate")
 
         #When the file menu is used to load files, go do stuff
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
+
+        #When the "calculate" button is clicked, go do stuff
+        self.EnterButton.clicked.connect(self.Enter)
 
 
         self.retranslateUi(MainWindow)
@@ -97,7 +105,7 @@ class Ui_MainWindow(object):
         self.refGraph.clear()
         refFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Reference File', "data", "Text files (*.txt)")
         rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
-        rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, X, num, labels, clusters = cluster_spots(rXPOS, rYPOS, 1, 1.5)
+        rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, X, num, labels, clusters = cluster_spots(rXPOS, rYPOS, 1, 1)
         #Add the clusters to the combo box under the graph
         colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
         ClusterList = []
@@ -118,7 +126,7 @@ class Ui_MainWindow(object):
         self.measGraph.clear()
         measFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Measurement File', "data", "Text files (*.txt)")
         mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
-        mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, X, num, labels, clusters = cluster_spots(mXPOS, mYPOS, 1, 0.5)
+        mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, X, num, labels, clusters = cluster_spots(mXPOS, mYPOS, 1, 1)
         #Add the clusters to the combo box under the graph
         colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
         ClusterList = []
@@ -167,6 +175,49 @@ class Ui_MainWindow(object):
         self.actionLoad_New_Reference.setText(_translate("MainWindow", "Load New Reference"))
         self.actionLoad_New_Measurement.setText(_translate("MainWindow", "Load New Measurement"))
 
+    def Enter(self):
+        text = self.refPhi.text()
+        if text == "":
+            string = "reference"
+            self.ShowBox(string)
+        else:
+            refAngle, drefAngle = text.split("(")
+            refAngle = float(refAngle)
+            drefAngle, trash = drefAngle.split(")")
+            drefAngle = float(drefAngle)
+
+
+        text = self.measPhi.text()
+        if text == "":
+            string = "measurement"
+            self.ShowBox(string)
+        else:
+            measAngle, dmeasAngle = text.split("(")
+            measAngle = float(measAngle)
+            dmeasAngle, trash = dmeasAngle.split(")")
+            dmeasAngle = float(dmeasAngle)
+        text = self.measRadius.text()
+        if text == "":
+            string = "measurement"
+            self.ShowBox(string)
+        else:
+            radius, dradius = text.split("(")
+            radius = float(radius)
+            #dradius, trash = dmeasAngle.split(")")
+
+        N, theta, frequency, dfrequency = Frequency(refAngle, drefAngle, measAngle, dmeasAngle, radius)
+        self.N.setText(str(N))
+        self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
+        self.Theta.setText(str(theta))
+
+    def ShowBox(self, string):
+        self.msg = QtWidgets.QMessageBox()
+        title = "Missing "+string+" file"
+        message = "No "+string+" file is selected. Please select a "+string+" file."
+        self.msg.setWindowTitle(title)
+        self.msg.setText(message)
+        self.msg.exec_()
+       
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
