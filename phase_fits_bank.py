@@ -271,7 +271,7 @@ def cluster_spots(xdata,ydata, radius, *args):
         ystuff['%i'%i] = X[labels == i][:,1]
         ips.append(len(xstuff['%i'%i]))
 
-##    
+##
     ax = plt.subplot(111, aspect = 'equal')
     plt.xlim(-13,7)
     plt.ylim(-6,14)
@@ -331,7 +331,7 @@ def cluster_spots(xdata,ydata, radius, *args):
         if labels[i] > -1:
             xkeep.append(X[i][0])
             ykeep.append(X[i][1])
-    return xs, xserr, ys, yserr, ips, xkeep, ykeep
+    return xs, xserr, ys, yserr, ips, xkeep, ykeep, X, n_clusters_, labels, cluster_center
 
 
 
