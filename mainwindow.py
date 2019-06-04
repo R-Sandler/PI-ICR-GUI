@@ -7,7 +7,6 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-#from PyQt5.QtWidgets import QMessageBox
 import pyqtgraph as pg
 from Definitions import *
 
@@ -101,44 +100,52 @@ class Ui_MainWindow(object):
 
     def LoadReference(self):
         #This bit loads a new file and calls the files useful_phase and phase_fits_bank to find clusters in the data
-        self.refClusterSelect.clear()
-        self.refGraph.clear()
         refFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Reference File', "data", "Text files (*.txt)")
-        rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
-        rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, X, num, labels, clusters = cluster_spots(rXPOS, rYPOS, 1, 1)
-        #Add the clusters to the combo box under the graph
-        colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
-        ClusterList = []
-        for i in range(0,num):
-            ClusterList.append(colornames[i])
-        self.refClusterSelect.addItems(ClusterList)
-        #Send the cluster information on to be plotted in the GUI
-        self.CreateRefPlot(X, labels, clusters)
-        cluster_of_interest = 0
-        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest)
-        self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
-        self.refPhi.setText(str(phi)+" ("+str(dphi)+")")
+        if refFile == "":
+            string = "reference"
+            self.ShowBox(string)
+        else:
+            self.refClusterSelect.clear()
+            self.refGraph.clear()
+            rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
+            rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, X, num, labels, clusters = cluster_spots(rXPOS, rYPOS, 1, 1)
+            #Add the clusters to the combo box under the graph
+            colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
+            ClusterList = []
+            for i in range(0,num):
+                ClusterList.append(colornames[i])
+            self.refClusterSelect.addItems(ClusterList)
+            #Send the cluster information on to be plotted in the GUI
+            self.CreateRefPlot(X, labels, clusters)
+            cluster_of_interest = 0
+            radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest)
+            self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
+            self.refPhi.setText(str(phi)+" ("+str(dphi)+")")
         
 
     def LoadMeasurement(self):
         #This bit loads a new file and calls the files useful_phase and phase_fits_bank to find clusters in the data
-        self.measClusterSelect.clear()
-        self.measGraph.clear()
         measFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Measurement File', "data", "Text files (*.txt)")
-        mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
-        mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, X, num, labels, clusters = cluster_spots(mXPOS, mYPOS, 1, 1)
-        #Add the clusters to the combo box under the graph
-        colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
-        ClusterList = []
-        for i in range(0,num):
-            ClusterList.append(colornames[i])
-        self.measClusterSelect.addItems(ClusterList)
-        #Send the cluster information on to be plotted
-        self.CreateMeasPlot(X, labels, clusters)
-        cluster_of_interest = 0
-        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest)
-        self.measRadius.setText(str(radius)+" ("+str(dradius)+")")
-        self.measPhi.setText(str(phi)+" ("+str(dphi)+")")
+        if measFile == "":
+            string = "measurement"
+            self.ShowBox(string)
+        else:
+            self.measClusterSelect.clear()
+            self.measGraph.clear()
+            mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
+            mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, X, num, labels, clusters = cluster_spots(mXPOS, mYPOS, 1, 1)
+            #Add the clusters to the combo box under the graph
+            colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
+            ClusterList = []
+            for i in range(0,num):
+                ClusterList.append(colornames[i])
+            self.measClusterSelect.addItems(ClusterList)
+            #Send the cluster information on to be plotted
+            self.CreateMeasPlot(X, labels, clusters)
+            cluster_of_interest = 0
+            radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest)
+            self.measRadius.setText(str(radius)+" ("+str(dradius)+")")
+            self.measPhi.setText(str(phi)+" ("+str(dphi)+")")
 
     def CreateRefPlot(self, data, labels, clusters):
         #Make a pretty plot
