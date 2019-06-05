@@ -24,8 +24,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    calibration.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    calibration.h
 
 FORMS    += mainwindow.ui

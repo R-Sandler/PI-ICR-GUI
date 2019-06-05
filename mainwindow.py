@@ -84,39 +84,51 @@ class Ui_MainWindow(object):
         self.EnterButton.setFlat(False)
         self.EnterButton.setObjectName("EnterButton")
         self.EnterButton.setText("Calculate")
+        self.Species = QtWidgets.QLabel(self.centralWidget)
+        self.Species.move(570, 30)
+        self.Species.setObjectName("Species")
+        self.Species.setStyleSheet("font:30pt")
+        self.Species.setText("<sup>39</sup>K")
 
         #When the file menu is used to load files, go do stuff
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
+        self.actionExit = fileMenu.addAction("Exit")
 
         #When the "calculate" button is clicked, go do stuff
         self.EnterButton.clicked.connect(self.Enter)
 
+        #When a combobox is used, recalculate the information for that file (not yet implemented)
+        self.refClusterSelect.activated.connect(self.refCluster)
+        self.measClusterSelect.activated.connect(self.measCluster)
 
         self.retranslateUi(MainWindow)
         self.actionLoad_New_Reference.triggered.connect(self.LoadReference)
         self.actionLoad_New_Measurement.triggered.connect(self.LoadMeasurement)
+        self.actionExit.triggered.connect(self.Exit)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def LoadReference(self):
+
         #This bit loads a new file and calls the files useful_phase and phase_fits_bank to find clusters in the data
         refFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Reference File', "data", "Text files (*.txt)")
         if refFile == "":
             string = "reference"
             self.ShowBox(string)
         else:
+            global rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters
             self.refClusterSelect.clear()
             self.refGraph.clear()
             rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
-            rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, X, num, labels, clusters = cluster_spots(rXPOS, rYPOS, 1, 1)
+            rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters = cluster_spots(rXPOS, rYPOS, 1, 1)
             #Add the clusters to the combo box under the graph
             colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
             ClusterList = []
-            for i in range(0,num):
+            for i in range(0,rnum):
                 ClusterList.append(colornames[i])
             self.refClusterSelect.addItems(ClusterList)
             #Send the cluster information on to be plotted in the GUI
-            self.CreateRefPlot(X, labels, clusters)
+            self.CreateRefPlot(rX, rlabels, rclusters)
             cluster_of_interest = 0
             radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest)
             self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
@@ -130,6 +142,7 @@ class Ui_MainWindow(object):
             string = "measurement"
             self.ShowBox(string)
         else:
+            global mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, mX, mnum, mlabels, mclusters
             self.measClusterSelect.clear()
             self.measGraph.clear()
             mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
@@ -167,6 +180,34 @@ class Ui_MainWindow(object):
             self.measGraph.plot(data[my,0], data[my,1], pen=None, symbol='o', symbolBrush = colors[k])
         self.measGraph.plot(clusters[:,0], clusters[:,1], pen=None, symbol='o', symbolSize=10, symbolBrush = 'k')
 
+    def refCluster(self, index):
+        #Recalculate the radius and angle of the plot for the selected cluster
+        self.refRadius.clear()
+        self.refPhi.clear()
+        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, index)
+        self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
+        self.refPhi.setText(str(phi)+" ("+str(dphi)+")")
+        #If the other plot is loaded, recalculate the frequency
+        text = self.measPhi.text()
+        if text == "":
+            text = "Nope"
+        else:
+            self.Enter()
+
+
+    def measCluster(self, index):
+        #Recalculate the radius and angle of the plot for the selected cluster
+        self.measRadius.clear()
+        self.measPhi.clear()
+        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, index)
+        self.measRadius.setText(str(radius)+" ("+str(dradius)+")")
+        self.measPhi.setText(str(phi)+" ("+str(dphi)+")")
+        #If the other plot is loaded, recalculate the frequency
+        text = self.refPhi.text()
+        if text == "":
+            text = "Nope"
+        else:
+            self.Enter()
 
 
     def retranslateUi(self, MainWindow):
@@ -192,30 +233,27 @@ class Ui_MainWindow(object):
             refAngle = float(refAngle)
             drefAngle, trash = drefAngle.split(")")
             drefAngle = float(drefAngle)
-
-
-        text = self.measPhi.text()
-        if text == "":
-            string = "measurement"
-            self.ShowBox(string)
-        else:
-            measAngle, dmeasAngle = text.split("(")
-            measAngle = float(measAngle)
-            dmeasAngle, trash = dmeasAngle.split(")")
-            dmeasAngle = float(dmeasAngle)
-        text = self.measRadius.text()
-        if text == "":
-            string = "measurement"
-            self.ShowBox(string)
-        else:
-            radius, dradius = text.split("(")
-            radius = float(radius)
-            #dradius, trash = dmeasAngle.split(")")
-
-        N, theta, frequency, dfrequency = Frequency(refAngle, drefAngle, measAngle, dmeasAngle, radius)
-        self.N.setText(str(N))
-        self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
-        self.Theta.setText(str(theta))
+            text = self.measPhi.text()
+            if text == "":
+                string = "measurement"
+                self.ShowBox(string)
+            else:
+                measAngle, dmeasAngle = text.split("(")
+                measAngle = float(measAngle)
+                dmeasAngle, trash = dmeasAngle.split(")")
+                dmeasAngle = float(dmeasAngle)
+                text = self.measRadius.text()
+                if text == "":
+                    string = "measurement"
+                    self.ShowBox(string)
+                else:
+                    radius, dradius = text.split("(")
+                    radius = float(radius)
+                    #dradius, trash = dmeasAngle.split(")")
+                    N, theta, frequency, dfrequency = Frequency(refAngle, drefAngle, measAngle, dmeasAngle, radius)
+                    self.N.setText(str(N))
+                    self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
+                    self.Theta.setText(str(theta))
 
     def ShowBox(self, string):
         self.msg = QtWidgets.QMessageBox()
@@ -224,6 +262,9 @@ class Ui_MainWindow(object):
         self.msg.setWindowTitle(title)
         self.msg.setText(message)
         self.msg.exec_()
+
+    def Exit(self):
+        sys.exit(app.exec_())
        
 if __name__ == "__main__":
     import sys

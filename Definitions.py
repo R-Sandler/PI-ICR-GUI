@@ -16,21 +16,16 @@ from sklearn.cluster import MeanShift
 
 def Calculator(xs, xserr, ys, yserr, cluster_of_interest):
 
-
-    xs[0]=xs[cluster_of_interest]
-    xserr[0]=xserr[cluster_of_interest]
-    ys[0]=ys[cluster_of_interest]
-    yserr[0]=yserr[cluster_of_interest]
-
-    radius = np.sqrt(np.square(xs[0]+1.94)+np.square(ys[0]-3.77))
+    radius = np.sqrt(np.square(xs[cluster_of_interest]+1.94)+np.square(ys[cluster_of_interest]-3.77))
     radius = round(radius, 3)
-    radius_uncertainty = np.sqrt(np.square(xserr[0])+np.square(yserr[0]))
+    radius_uncertainty = np.sqrt(np.square(xserr[cluster_of_interest])+np.square(yserr[cluster_of_interest]))
     radius_uncertainty = round(radius_uncertainty, 3)
 
-    angle = m.atan2(3.77-ys[0],-1.94-xs[0])
-    angle_uncertainty = 1/(np.square(3.77-ys[0])+np.square(-1.94-xs[0]))*np.sqrt(np.square(-1.94-xs[0])*np.square(0.05)+np.square(xs[0]+1.94)*np.square(yserr[0])+np.square(ys[0]-3.77)*np.square(0.05)+np.square(3.77-ys[0])*np.square(xserr[0]))
+    angle = m.atan2(3.77-ys[cluster_of_interest],-1.94-xs[cluster_of_interest])
+    angle_uncertainty = 1/(np.square(3.77-ys[cluster_of_interest])+np.square(-1.94-xs[cluster_of_interest]))*np.sqrt(np.square(-1.94-xs[cluster_of_interest])*np.square(0.05)+np.square(xs[cluster_of_interest]+1.94)*np.square(yserr[cluster_of_interest])+np.square(ys[cluster_of_interest]-3.77)*np.square(0.05)+np.square(3.77-ys[cluster_of_interest])*np.square(xserr[cluster_of_interest]))
     angle = round(angle, 3)
     angle_uncertainty = round(angle_uncertainty, 3)
+    #print(rxs)
 
     return radius, radius_uncertainty, angle, angle_uncertainty
 
