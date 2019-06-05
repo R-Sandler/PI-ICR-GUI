@@ -29,22 +29,28 @@ def Calculator(xs, xserr, ys, yserr, cluster_of_interest):
 
     return radius, radius_uncertainty, angle, angle_uncertainty
 
-def Frequency(refAngle, drefAngle, measAngle, dmeasAngle, radius):
+def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex):
+
     frequency_guess = 781283.9864
     time = 345009
 
     rot_time = 1000000/frequency_guess
     N = int(round(time/rot_time))
-    theta = measAngle-refAngle
+    radius = np.sqrt(np.square(mxs[mindex]+1.94)+np.square(mys[mindex]-3.77))
+    
+    theta = m.atan2(3.77-mys[mindex],-1.94-mxs[mindex])-m.atan2(3.77-rys[rindex],-1.94-rxs[rindex])
+    theta_uncertainty = 1/(np.square(3.77-mys[mindex])+np.square(-1.94-mxs[mindex]))*np.sqrt(np.square(-1.94-mxs[mindex])*np.square(0.05)+np.square(mxs[mindex]+1.94)*np.square(myserr[mindex])+np.square(mys[mindex]-3.77)*np.square(0.05)+np.square(3.77-mys[mindex])*np.square(mxserr[mindex]))
     if theta<0:
         theta = theta+2*pi
         N = N-1
     frequency = (theta+2*pi*N)/(2*pi*time*0.000001)
-    frequency_uncertainty = np.sqrt(np.square(drefAngle)+np.square(dmeasAngle))
+    frequency_uncertainty = np.sqrt(np.square(rys[rindex]*rxserr[rindex])+np.square(rxs[rindex]*ryserr[rindex])+np.square(rxs[rindex]*ryserr[rindex])+np.square(rys[rindex]*rxserr[rindex]))/(2*pi*radius*radius*time*0.000001)
+
+    theta = round(theta, 3)
+    theta_uncertainty = round(theta_uncertainty, 3)
     frequency = round(frequency, 4)
     frequency_uncertainty = round(frequency_uncertainty, 4)
-
-    return N, theta, frequency, frequency_uncertainty
+    return N, theta, theta_uncertainty, frequency, frequency_uncertainty
 
 def poswithtof(name, tlow, thigh, *args):
 

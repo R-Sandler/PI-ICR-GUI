@@ -229,31 +229,18 @@ class Ui_MainWindow(object):
             string = "reference"
             self.ShowBox(string)
         else:
-            refAngle, drefAngle = text.split("(")
-            refAngle = float(refAngle)
-            drefAngle, trash = drefAngle.split(")")
-            drefAngle = float(drefAngle)
+            rindex = self.refClusterSelect.currentIndex()
             text = self.measPhi.text()
             if text == "":
                 string = "measurement"
                 self.ShowBox(string)
             else:
-                measAngle, dmeasAngle = text.split("(")
-                measAngle = float(measAngle)
-                dmeasAngle, trash = dmeasAngle.split(")")
-                dmeasAngle = float(dmeasAngle)
-                text = self.measRadius.text()
-                if text == "":
-                    string = "measurement"
-                    self.ShowBox(string)
-                else:
-                    radius, dradius = text.split("(")
-                    radius = float(radius)
-                    #dradius, trash = dmeasAngle.split(")")
-                    N, theta, frequency, dfrequency = Frequency(refAngle, drefAngle, measAngle, dmeasAngle, radius)
-                    self.N.setText(str(N))
-                    self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
-                    self.Theta.setText(str(theta))
+                mindex = self.measClusterSelect.currentIndex()
+                N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex)
+                self.N.setText(str(N))
+                self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
+                self.Theta.setText(str(theta) + " (" + str(dtheta) + ")")
+                
 
     def ShowBox(self, string):
         self.msg = QtWidgets.QMessageBox()
