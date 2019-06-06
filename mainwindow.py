@@ -9,6 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from Definitions import *
+from calibratewindow import Ui_CalibrateWindow
 
 
 class Ui_MainWindow(object):
@@ -70,6 +71,7 @@ class Ui_MainWindow(object):
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1500, 21))
         self.menuBar.setObjectName("menuBar")
         fileMenu = self.menuBar.addMenu('&File')
+        infoMenu = self.menuBar.addMenu('&Info')
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
         self.refGraph = pg.PlotWidget(self.centralWidget)
@@ -90,10 +92,12 @@ class Ui_MainWindow(object):
         self.Species.setStyleSheet("font:30pt")
         self.Species.setText("<sup>39</sup>K")
 
-        #When the file menu is used to load files, go do stuff
+        #Add things to the menu bar
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
         self.actionExit = fileMenu.addAction("Exit")
+
+        self.actionCalibrate = infoMenu.addAction("Calibrate")
 
         #When the "calculate" button is clicked, go do stuff
         self.EnterButton.clicked.connect(self.Enter)
@@ -103,9 +107,12 @@ class Ui_MainWindow(object):
         self.measClusterSelect.activated.connect(self.measCluster)
 
         self.retranslateUi(MainWindow)
+
+        #When the menu bar is used to load files, go do stuff
         self.actionLoad_New_Reference.triggered.connect(self.LoadReference)
         self.actionLoad_New_Measurement.triggered.connect(self.LoadMeasurement)
         self.actionExit.triggered.connect(self.Exit)
+        self.actionCalibrate.triggered.connect(self.CalibrateSelect)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def LoadReference(self):
@@ -250,11 +257,25 @@ class Ui_MainWindow(object):
         self.msg.setText(message)
         self.msg.exec_()
 
+    def CalibrateSelect(self):
+        print("HI")
+        #self.CalibrateWindow = Ui_CalibrateWindow()
+        cw = Ui_CalibrateWindow()
+        #cw.setupUi(self)
+        print("Here")
+        cw.exec_()
+        #self.CalibrateWindow.show()
+
+
     def Exit(self):
         sys.exit(app.exec_())
+
+def except_hook(cls, exception, traceback):
+        sys.__excepthook__(cls, exception, traceback)
        
 if __name__ == "__main__":
     import sys
+    sys.excepthook = except_hook
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QWidget()
     ui = Ui_MainWindow()

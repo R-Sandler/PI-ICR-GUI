@@ -14,7 +14,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QFrame>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -33,8 +33,6 @@ public:
     QAction *actionLoad_New_Reference;
     QAction *actionLoad_New_Measurement;
     QWidget *centralWidget;
-    QFrame *frame;
-    QFrame *frame_2;
     QComboBox *refClusterSelect;
     QComboBox *measClusterSelect;
     QLineEdit *refPhi;
@@ -51,6 +49,10 @@ public:
     QLabel *label_5;
     QLabel *label_6;
     QLabel *label_7;
+    QWidget *horizontalLayoutWidget;
+    QHBoxLayout *horizontalLayout;
+    QWidget *horizontalLayoutWidget_2;
+    QHBoxLayout *horizontalLayout_2;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QToolBar *mainToolBar;
@@ -67,16 +69,6 @@ public:
         actionLoad_New_Measurement->setObjectName(QStringLiteral("actionLoad_New_Measurement"));
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
-        frame = new QFrame(centralWidget);
-        frame->setObjectName(QStringLiteral("frame"));
-        frame->setGeometry(QRect(20, 10, 301, 301));
-        frame->setFrameShape(QFrame::StyledPanel);
-        frame->setFrameShadow(QFrame::Raised);
-        frame_2 = new QFrame(centralWidget);
-        frame_2->setObjectName(QStringLiteral("frame_2"));
-        frame_2->setGeometry(QRect(350, 10, 301, 301));
-        frame_2->setFrameShape(QFrame::StyledPanel);
-        frame_2->setFrameShadow(QFrame::Raised);
         refClusterSelect = new QComboBox(centralWidget);
         refClusterSelect->setObjectName(QStringLiteral("refClusterSelect"));
         refClusterSelect->setGeometry(QRect(20, 320, 301, 22));
@@ -125,6 +117,22 @@ public:
         label_7 = new QLabel(centralWidget);
         label_7->setObjectName(QStringLiteral("label_7"));
         label_7->setGeometry(QRect(200, 470, 71, 20));
+        horizontalLayoutWidget = new QWidget(centralWidget);
+        horizontalLayoutWidget->setObjectName(QStringLiteral("horizontalLayoutWidget"));
+        horizontalLayoutWidget->setGeometry(QRect(10, 10, 311, 281));
+        horizontalLayout = new QHBoxLayout(horizontalLayoutWidget);
+        horizontalLayout->setSpacing(6);
+        horizontalLayout->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        horizontalLayout->setContentsMargins(0, 0, 0, 0);
+        horizontalLayoutWidget_2 = new QWidget(centralWidget);
+        horizontalLayoutWidget_2->setObjectName(QStringLiteral("horizontalLayoutWidget_2"));
+        horizontalLayoutWidget_2->setGeometry(QRect(350, 10, 301, 281));
+        horizontalLayout_2 = new QHBoxLayout(horizontalLayoutWidget_2);
+        horizontalLayout_2->setSpacing(6);
+        horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        horizontalLayout_2->setContentsMargins(0, 0, 0, 0);
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
