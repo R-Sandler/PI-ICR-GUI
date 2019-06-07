@@ -258,14 +258,13 @@ class Ui_MainWindow(object):
         self.msg.exec_()
 
     def CalibrateSelect(self):
-        print("HI")
-        #self.CalibrateWindow = Ui_CalibrateWindow()
-        cw = Ui_CalibrateWindow()
-        #cw.setupUi(self)
-        print("Here")
-        cw.exec_()
-        #self.CalibrateWindow.show()
+        self.cw = Ui_CalibrateWindow()
+        #self.cw.exec_()
+        self.cw.freqCCalc.clicked.connect(self.CalibrateCalc)
+        self.cw.exec_()
 
+    def CalibrateCalc(self):
+        print("Wahoo!")
 
     def Exit(self):
         sys.exit(app.exec_())
