@@ -61,8 +61,6 @@ class Ui_CalibrateWindow(QtGui.QDialog):
         self.retranslateUi(CalibrateWindow)
         QtCore.QMetaObject.connectSlotsByName(CalibrateWindow)
 
-        #self.freqCCalc.clicked.connect(CalibrateCalc)
-
     def retranslateUi(self, CalibrateWindow):
         _translate = QtCore.QCoreApplication.translate
         CalibrateWindow.setWindowTitle(_translate("CalibrateWindow", "Dialog"))

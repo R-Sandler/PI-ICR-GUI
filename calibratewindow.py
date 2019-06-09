@@ -11,13 +11,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 #class Ui_CalibrateWindow(object):
 class Ui_CalibrateWindow(QtGui.QDialog):
+    import sys
     def __init__(self, parent=None):
         super(Ui_CalibrateWindow, self).__init__(parent)
         self.setupUi(self)
         
     def setupUi(self, CalibrateWindow):
         CalibrateWindow.setObjectName("CalibrateWindow")
-        CalibrateWindow.resize(230, 150)
+        CalibrateWindow.resize(230, 270)
         self.label = QtWidgets.QLabel(CalibrateWindow)
         self.label.setGeometry(QtCore.QRect(10, 10, 47, 20))
         self.label.setObjectName("label")
@@ -45,6 +46,12 @@ class Ui_CalibrateWindow(QtGui.QDialog):
         self.freqMinusCalc = QtWidgets.QPushButton(CalibrateWindow)
         self.freqMinusCalc.setGeometry(QtCore.QRect(50, 120, 20, 20))
         self.freqMinusCalc.setObjectName("freqMinusCalc")
+        self.acceptButton = QtWidgets.QPushButton(CalibrateWindow)
+        self.acceptButton.setGeometry(QtCore.QRect(10, 150, 210, 50))
+        self.acceptButton.setObjectName("acceptButton")
+        self.cancelButton = QtWidgets.QPushButton(CalibrateWindow)
+        self.cancelButton.setGeometry(QtCore.QRect(10, 210, 210, 50))
+        self.cancelButton.setObjectName("cancelButton")
         self.label_5 = QtWidgets.QLabel(CalibrateWindow)
         self.label_5.setGeometry(QtCore.QRect(10, 120, 47, 20))
         self.label_5.setObjectName("label_5")
@@ -61,9 +68,11 @@ class Ui_CalibrateWindow(QtGui.QDialog):
         self.retranslateUi(CalibrateWindow)
         QtCore.QMetaObject.connectSlotsByName(CalibrateWindow)
 
+        #self.freqCCalc.clicked.connect(CalibrateCalc)
+
     def retranslateUi(self, CalibrateWindow):
         _translate = QtCore.QCoreApplication.translate
-        CalibrateWindow.setWindowTitle(_translate("CalibrateWindow", "Dialog"))
+        CalibrateWindow.setWindowTitle(_translate("CalibrateWindow", "Calibration"))
         self.label.setText(_translate("CalibrateWindow", "Nuclide"))
         self.label_2.setText(_translate("CalibrateWindow", "Charge"))
         self.label_3.setText(_translate("CalibrateWindow", "nu c"))
@@ -71,6 +80,8 @@ class Ui_CalibrateWindow(QtGui.QDialog):
         self.label_4.setText(_translate("CalibrateWindow", "nu +"))
         self.freqPlusCalc.setText(_translate("CalibrateWindow", "C"))
         self.freqMinusCalc.setText(_translate("CalibrateWindow", "C"))
+        self.acceptButton.setText(_translate("CalibrateWindow", "Accept"))
+        self.cancelButton.setText(_translate("CalibrateWindow", "Cancel"))
         self.label_5.setText(_translate("CalibrateWindow", "nu -"))
 
 

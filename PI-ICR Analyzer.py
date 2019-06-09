@@ -144,18 +144,93 @@ def ShowBox(string):
     msg.exec_()
 
 def CalibrateSelect(self):
+    global cw
     cw = Ui_CalibrateWindow()
-    cw.freqCCalc.clicked.connect(CalibrateCalc)
+    cw.Nuclide.setText(calibNuclide)
+    cw.Charge.setText(str(calibCharge))
+    cw.freqC.setText(str(calibFreqC))
+    cw.freqPlus.setText(str(calibFreqPlus))
+    cw.freqMinus.setText(str(calibFreqMinus))
+    cw.freqCCalc.clicked.connect(CalibrateCalcC)
+    cw.freqPlusCalc.clicked.connect(CalibrateCalcPlus)
+    cw.freqMinusCalc.clicked.connect(CalibrateCalcMinus)
+    cw.acceptButton.clicked.connect(AcceptCalibration)
+    cw.cancelButton.clicked.connect(CancelCalibration)
     cw.exec_()
 
-def CalibrateCalc(self):
-    print("Wahoo!")
+def CalibrateCalcC(self):
+    newFreqPlus = float(cw.freqPlus.text())
+    newFreqMinus = float(cw.freqMinus.text())
+    newFreqC = newFreqPlus + newFreqMinus
+    cw.freqC.clear()
+    cw.freqC.setText(str(newFreqC))
+
+def CalibrateCalcPlus(self):
+    newFreqC = float(cw.freqC.text())
+    newFreqMinus = float(cw.freqMinus.text())
+    newFreqPlus = newFreqC - newFreqMinus
+    cw.freqPlus.clear()
+    cw.freqPlus.setText(str(newFreqPlus))
+
+def CalibrateCalcMinus(self):
+    newFreqPlus = float(cw.freqPlus.text())
+    newFreqC = float(cw.freqC.text())
+    newFreqMinus = newFreqC - newFreqPlus
+    cw.freqMinus.clear()
+    cw.freqMinus.setText(str(newFreqMinus))
+
+def AcceptCalibration(self):
+    newNuclide = cw.Nuclide.text()
+    newCharge = cw.Charge.text()
+    newFreqC = cw.freqC.text()
+    newFreqPlus = cw.freqPlus.text()
+    newFreqMinus = cw.freqMinus.text()
+    calibFile = open('Calibration.xml', 'r')
+    calibData = calibFile.read()
+    calibData = re.sub(calibNuclide, newNuclide, calibData)
+    calibData = re.sub("<charge>"+str(calibCharge)+"</charge>", "<charge>"+newCharge+"</charge>", calibData)
+    calibData = re.sub(str(calibFreqC), newFreqC, calibData)
+    calibData = re.sub(str(calibFreqPlus), newFreqPlus, calibData)
+    calibData = re.sub(str(calibFreqMinus), newFreqMinus, calibData)
+    calibFile.close()
+    calibFile = open('Calibration.xml', 'w')
+    calibFile.write(calibData)
+    calibFile.close()
+
+    cw.close()
+    NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus)
+    
+
+def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus):
+    calibNuclide = newNuclide
+    calibCharge = int(newCharge)
+    calibFreqC = float(newFreqC)
+    calibFreqPlus = float(newFreqPlus)
+    calibFreqMinus = float(newFreqMinus)
+
+    
+
+def CancelCalibration(self):
+    cw.close()
+
+    
+def CalibrateInfo(self):
+    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus
+    calibFile = open('Calibration.xml', 'r')
+    calibData = calibFile.readlines()
+    calibFile.close()
+    calibNuclide = (calibData[1].split('<nuclide>')[1]).split('</nuclide>')[0]
+    calibCharge = int((calibData[2].split('<charge>')[1]).split('</charge>')[0])
+    calibFreqC = float((calibData[4].split('<freq>')[1]).split('</freq>')[0])
+    calibFreqPlus = float((calibData[12].split('<freq>')[1]).split('</freq>')[0])
+    calibFreqMinus = float((calibData[20].split('<freq>')[1]).split('</freq>')[0])
+
 
 def Exit(self):
-    sys.ui.exit(app.exec_())
+    sys.exit(app.exec_())
 
 def except_hook(cls, exception, traceback):
-        sys.__excepthook__(cls, exception, traceback)
+    sys.__excepthook__(cls, exception, traceback)
        
 if __name__ == "__main__":
     import sys
@@ -164,6 +239,7 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QWidget()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    CalibrateInfo(MainWindow)
     MainWindow.show()
 
     #When the "calculate" button is clicked, go do stuff

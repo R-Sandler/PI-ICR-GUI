@@ -1,18 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.2
-#
-# WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
-from Definitions import *
-from calibratewindow import Ui_CalibrateWindow
 
-
-class Ui_MainWindow(object):
+class Ui_MainWindow(QtWidgets.QWidget):
+    import sys
+    def __init__(self, parent=None):
+        super(Ui_MainWindow, self).__init__(parent)
+        self.setupUi(self)
+        
     def setupUi(self, MainWindow):
         #This is all just drawing the GUI and setting things in place
         MainWindow.setObjectName("PI-ICR Analysis")
@@ -91,135 +85,17 @@ class Ui_MainWindow(object):
         self.Species.setObjectName("Species")
         self.Species.setStyleSheet("font:30pt")
         self.Species.setText("<sup>39</sup>K")
-
-        #Add things to the menu bar
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
         self.actionExit = fileMenu.addAction("Exit")
-
         self.actionCalibrate = infoMenu.addAction("Calibrate")
 
-        #When the "calculate" button is clicked, go do stuff
-        self.EnterButton.clicked.connect(self.Enter)
-
-        #When a combobox is used, recalculate the information for that file (not yet implemented)
-        self.refClusterSelect.activated.connect(self.refCluster)
-        self.measClusterSelect.activated.connect(self.measCluster)
-
-        self.retranslateUi(MainWindow)
-
-        #When the menu bar is used to load files, go do stuff
-        self.actionLoad_New_Reference.triggered.connect(self.LoadReference)
-        self.actionLoad_New_Measurement.triggered.connect(self.LoadMeasurement)
-        self.actionExit.triggered.connect(self.Exit)
-        self.actionCalibrate.triggered.connect(self.CalibrateSelect)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def LoadReference(self):
-
-        #This bit loads a new file and calls the files useful_phase and phase_fits_bank to find clusters in the data
-        refFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Reference File', "data", "Text files (*.txt)")
-        if refFile == "":
-            string = "reference"
-            self.ShowBox(string)
-        else:
-            global rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters
-            self.refClusterSelect.clear()
-            self.refGraph.clear()
-            rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
-            rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters = cluster_spots(rXPOS, rYPOS, 1, 1)
-            #Add the clusters to the combo box under the graph
-            colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
-            ClusterList = []
-            for i in range(0,rnum):
-                ClusterList.append(colornames[i])
-            self.refClusterSelect.addItems(ClusterList)
-            #Send the cluster information on to be plotted in the GUI
-            self.CreateRefPlot(rX, rlabels, rclusters)
-            cluster_of_interest = 0
-            radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest)
-            self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
-            self.refPhi.setText(str(phi)+" ("+str(dphi)+")")
-        
-
-    def LoadMeasurement(self):
-        #This bit loads a new file and calls the files useful_phase and phase_fits_bank to find clusters in the data
-        measFile, _filter = QtWidgets.QFileDialog.getOpenFileName(self.centralWidget, 'Load Measurement File', "data", "Text files (*.txt)")
-        if measFile == "":
-            string = "measurement"
-            self.ShowBox(string)
-        else:
-            global mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, mX, mnum, mlabels, mclusters
-            self.measClusterSelect.clear()
-            self.measGraph.clear()
-            mXPOS,mYPOS,mTOF,mSUMX,mSUMY,mdf2 = poswithtof(measFile, -35000, -25000)
-            mxs, mxserr, mys, myserr, mips, mxkeep, mykeep, X, num, labels, clusters = cluster_spots(mXPOS, mYPOS, 1, 1)
-            #Add the clusters to the combo box under the graph
-            colornames = ['Blue', 'Red', 'Green', 'Cyan', 'Yellow', 'Magenta']
-            ClusterList = []
-            for i in range(0,num):
-                ClusterList.append(colornames[i])
-            self.measClusterSelect.addItems(ClusterList)
-            #Send the cluster information on to be plotted
-            self.CreateMeasPlot(X, labels, clusters)
-            cluster_of_interest = 0
-            radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest)
-            self.measRadius.setText(str(radius)+" ("+str(dradius)+")")
-            self.measPhi.setText(str(phi)+" ("+str(dphi)+")")
-
-    def CreateRefPlot(self, data, labels, clusters):
-        #Make a pretty plot
-        colors = ['b', 'r', 'g', 'c', 'y', 'm', 'w']
-        self.refGraph.setXRange(-13,7, padding=0)
-        self.refGraph.setYRange(-6,14, padding=0)
-        for k, col in zip(unique(labels), colors):
-            my = labels == k
-            self.refGraph.plot(data[my,0], data[my,1], pen=None, symbol='o', symbolBrush = colors[k])
-        self.refGraph.plot(clusters[:,0], clusters[:,1], pen=None, symbol='o', symbolSize=10, symbolBrush = 'k')
-
-    def CreateMeasPlot(self, data, labels, clusters):
-        #Make a pretty plot
-        colors = ['b', 'r', 'g', 'c', 'y', 'm', 'w']
-        self.measGraph.setXRange(-13,7, padding=0)
-        self.measGraph.setYRange(-6,14, padding=0)
-        for k, col in zip(unique(labels), colors):
-            my = labels == k
-            self.measGraph.plot(data[my,0], data[my,1], pen=None, symbol='o', symbolBrush = colors[k])
-        self.measGraph.plot(clusters[:,0], clusters[:,1], pen=None, symbol='o', symbolSize=10, symbolBrush = 'k')
-
-    def refCluster(self, index):
-        #Recalculate the radius and angle of the plot for the selected cluster
-        self.refRadius.clear()
-        self.refPhi.clear()
-        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, index)
-        self.refRadius.setText(str(radius)+" ("+str(dradius)+")")
-        self.refPhi.setText(str(phi)+" ("+str(dphi)+")")
-        #If the other plot is loaded, recalculate the frequency
-        text = self.measPhi.text()
-        if text == "":
-            text = "Nope"
-        else:
-            self.Enter()
-
-
-    def measCluster(self, index):
-        #Recalculate the radius and angle of the plot for the selected cluster
-        self.measRadius.clear()
-        self.measPhi.clear()
-        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, index)
-        self.measRadius.setText(str(radius)+" ("+str(dradius)+")")
-        self.measPhi.setText(str(phi)+" ("+str(dphi)+")")
-        #If the other plot is loaded, recalculate the frequency
-        text = self.refPhi.text()
-        if text == "":
-            text = "Nope"
-        else:
-            self.Enter()
-
+        self.retranslateUi(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "PI-ICR Analysis"))
         self.label.setText(_translate("MainWindow", "Angle"))
         self.label_2.setText(_translate("MainWindow", "Angle"))
         self.label_3.setText(_translate("MainWindow", "Radius"))
@@ -229,55 +105,3 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Frequency"))
         self.actionLoad_New_Reference.setText(_translate("MainWindow", "Load New Reference"))
         self.actionLoad_New_Measurement.setText(_translate("MainWindow", "Load New Measurement"))
-
-    def Enter(self):
-        text = self.refPhi.text()
-        if text == "":
-            string = "reference"
-            self.ShowBox(string)
-        else:
-            rindex = self.refClusterSelect.currentIndex()
-            text = self.measPhi.text()
-            if text == "":
-                string = "measurement"
-                self.ShowBox(string)
-            else:
-                mindex = self.measClusterSelect.currentIndex()
-                N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex)
-                self.N.setText(str(N))
-                self.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
-                self.Theta.setText(str(theta) + " (" + str(dtheta) + ")")
-                
-
-    def ShowBox(self, string):
-        self.msg = QtWidgets.QMessageBox()
-        title = "Missing "+string+" file"
-        message = "No "+string+" file is selected. Please select a "+string+" file."
-        self.msg.setWindowTitle(title)
-        self.msg.setText(message)
-        self.msg.exec_()
-
-    def CalibrateSelect(self):
-        self.cw = Ui_CalibrateWindow()
-        #self.cw.exec_()
-        self.cw.freqCCalc.clicked.connect(self.CalibrateCalc)
-        self.cw.exec_()
-
-    def CalibrateCalc(self):
-        print("Wahoo!")
-
-    def Exit(self):
-        sys.exit(app.exec_())
-
-def except_hook(cls, exception, traceback):
-        sys.__excepthook__(cls, exception, traceback)
-       
-if __name__ == "__main__":
-    import sys
-    sys.excepthook = except_hook
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QWidget()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
