@@ -14,6 +14,7 @@ from lmfit.models import VoigtModel
 from lmfit.models import QuadraticModel
 from lmfit.models import ExponentialGaussianModel
 from sklearn.cluster import MeanShift
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 def Calculator(xs, xserr, ys, yserr, cluster_of_interest):
 
@@ -54,66 +55,84 @@ def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex
     return N, theta, theta_uncertainty, frequency, frequency_uncertainty
 
 def CalibrationMass(calibNuclide, calibCharge):
-    AMEFile = open('ame2016.txt', 'r')
-    AMEData = AMEFile.readlines()
-    for i in range(0,len(AMEData)):
-        AMEData[i] = AMEData[i].split("\t")
-    AMEFile.close()
+    try:
+        AMEFile = open('ame2016.txt', 'r')
+        AMEData = AMEFile.readlines()
+        for i in range(0,len(AMEData)):
+            AMEData[i] = AMEData[i].split("\t")
+        AMEFile.close()
 
 
-    #if calibNuclide.find(":")>-1:
-        #The nuclide is actually a molecule. Crap
-    for i in range(0, len(calibNuclide)):
-        if calibNuclide[i].isalpha():
-            speciesStart = i
-            if calibNuclide[i+1].isalpha():
-                speciesEnd = i+2
-            else:
-                speciesEnd = i+1
+        #if calibNuclide.find(":")>-1:
+            #The nuclide is actually a molecule. Crap
+        for i in range(0, len(calibNuclide)):
+            if calibNuclide[i].isalpha():
+                speciesStart = i
+                if calibNuclide[i+1].isalpha():
+                    speciesEnd = i+2
+                else:
+                    speciesEnd = i+1
 
-    calibCount = int(calibNuclide[0:speciesStart])
-    calibSpecies = calibNuclide[speciesStart:speciesEnd]
-    calibNucleons = calibNuclide[speciesEnd:len(calibNuclide)]
+        calibCount = int(calibNuclide[0:speciesStart])
+        calibSpecies = calibNuclide[speciesStart:speciesEnd]
+        calibNucleons = calibNuclide[speciesEnd:len(calibNuclide)]
 
-    for i in range(0, len(AMEData)):
-        if AMEData[i][2] == calibSpecies:
-            if AMEData[i][1] == calibNucleons:
-                calibME = float(AMEData[i][3])
+        for i in range(0, len(AMEData)):
+            if AMEData[i][2] == calibSpecies:
+                if AMEData[i][1] == calibNucleons:
+                    calibME = float(AMEData[i][3])
 
-    calibNucleons = float(calibNucleons)           
-    calibMass = round(calibCount/calibCharge*(calibNucleons+(calibME/931494.0954)),8)
+        calibNucleons = float(calibNucleons)           
+        calibMass = round(calibCount/calibCharge*(calibNucleons+(calibME/931494.0954)),8)
+
+    except FileNotFoundError:
+        msg = QtWidgets.QMessageBox()
+        title = "Missing AME file"
+        message = "No AME file found. Please check that there is an AME file."
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        msg.exec_()
+        calibMass = 38.963706487
 
     return calibMass
 
 def ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge):
-    AMEFile = open('ame2016.txt', 'r')
-    AMEData = AMEFile.readlines()
-    for i in range(0,len(AMEData)):
-        AMEData[i] = AMEData[i].split("\t")
-    AMEFile.close()
+    try:
+        AMEFile = open('ame2016.txt', 'r')
+        AMEData = AMEFile.readlines()
+        for i in range(0,len(AMEData)):
+            AMEData[i] = AMEData[i].split("\t")
+        AMEFile.close()
 
-    #if calibNuclide.find(":")>-1:
-        #The nuclide is actually a molecule. Crap
-    for i in range(0, len(measNuclide)):
-        if measNuclide[i].isalpha():
-            speciesStart = i
-            if measNuclide[i+1].isalpha():
-                speciesEnd = i+2
-            else:
-                speciesEnd = i+1
-    measCount = int(measNuclide[0:speciesStart])
-    measSpecies = measNuclide[speciesStart:speciesEnd]
-    measNucleons = measNuclide[speciesEnd:len(measNuclide)]
+        #if calibNuclide.find(":")>-1:
+            #The nuclide is actually a molecule. Crap
+        for i in range(0, len(measNuclide)):
+            if measNuclide[i].isalpha():
+                speciesStart = i
+                if measNuclide[i+1].isalpha():
+                    speciesEnd = i+2
+                else:
+                    speciesEnd = i+1
+        measCount = int(measNuclide[0:speciesStart])
+        measSpecies = measNuclide[speciesStart:speciesEnd]
+        measNucleons = measNuclide[speciesEnd:len(measNuclide)]
 
-    for i in range(0, len(AMEData)):
-        if AMEData[i][2] == measSpecies:
-            if AMEData[i][1] == measNucleons:
-                measME = float(AMEData[i][3])
+        for i in range(0, len(AMEData)):
+            if AMEData[i][2] == measSpecies:
+                if AMEData[i][1] == measNucleons:
+                    measME = float(AMEData[i][3])
 
-    measNucleons = float(measNucleons)
-    measMass = round(measCount/measCharge*(measNucleons+(measME/931494.0954)),8)
-    expFreq = calibFreqC*calibMass/measMass
-
+        measNucleons = float(measNucleons)
+        measMass = round(measCount/measCharge*(measNucleons+(measME/931494.0954)),8)
+        expFreq = calibFreqC*calibMass/measMass
+    except FileNotFoundError:
+        msg = QtWidgets.QMessageBox()
+        title = "Missing AME file"
+        message = "No AME file found. Please check that there is an AME file."
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        msg.exec_()
+        expFreq = 3688955.2387
     return expFreq
 
 def poswithtof(name, tlow, thigh, *args):

@@ -129,9 +129,15 @@ def Enter(self):
             string = "measurement"
             ShowBox(string)
         else:
-            if measTime == "":
-                string = "accumulation time"
-                ShowBox(string)
+            try: measTime
+            except NameError: measTime = "Missing"
+            if measTime == "Missing":
+                msg = QtWidgets.QMessageBox()
+                title = "Missing accumulation time"
+                message = "No accumulation time has been entered. Please enter an accumulation time."
+                msg.setWindowTitle(title)
+                msg.setText(message)
+                msg.exec_()
             else:
                 mindex = ui.measClusterSelect.currentIndex()
                 N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime)
@@ -142,8 +148,8 @@ def Enter(self):
 
 def ShowBox(string):
     msg = QtWidgets.QMessageBox()
-    title = "Missing "+string
-    message = "No "+string+" is selected. Please select a "+string+"."
+    title = "Missing "+string+" file"
+    message = "No "+string+" file is selected. Please select a "+string+" file."
     msg.setWindowTitle(title)
     msg.setText(message)
     msg.exec_()
@@ -199,20 +205,24 @@ def AcceptCalibration(self):
     newFreqC = cw.freqC.text()
     newFreqPlus = cw.freqPlus.text()
     newFreqMinus = cw.freqMinus.text()
-    calibFile = open('Calibration.xml', 'r')
-    calibData = calibFile.read()
-    calibData = re.sub(calibNuclide, newNuclide, calibData)
-    calibData = re.sub("<charge>"+str(calibCharge)+"</charge>", "<charge>"+newCharge+"</charge>", calibData)
-    calibData = re.sub(str(calibFreqC), newFreqC, calibData)
-    calibData = re.sub(str(calibFreqPlus), newFreqPlus, calibData)
-    calibData = re.sub(str(calibFreqMinus), newFreqMinus, calibData)
-    calibFile.close()
-    calibFile = open('Calibration.xml', 'w')
-    calibFile.write(calibData)
-    calibFile.close()
+    try:
+        calibFile = open('Calibration.xml', 'r')
+        calibData = calibFile.read()
+        calibData = re.sub(calibNuclide, newNuclide, calibData)
+        calibData = re.sub("<charge>"+str(calibCharge)+"</charge>", "<charge>"+newCharge+"</charge>", calibData)
+        calibData = re.sub(str(calibFreqC), newFreqC, calibData)
+        calibData = re.sub(str(calibFreqPlus), newFreqPlus, calibData)
+        calibData = re.sub(str(calibFreqMinus), newFreqMinus, calibData)
+        calibFile.close()
+        calibFile = open('Calibration.xml', 'w')
+        calibFile.write(calibData)
+        calibFile.close()
+        NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus)
+    except FileNotFoundError:
+        string = "calibration"
+        ShowBox(string)
 
     cw.close()
-    NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus)
     
 
 def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus):
@@ -232,16 +242,28 @@ def AcceptMeasurement(self):
     newMeasNuclide = iw.Nuclide.text()
     newMeasCharge = iw.Charge.text()
     newMeasTime = iw.tAcc.text()
-    measFile = open('Mass.xml', 'r')
-    measData = measFile.read()
-    measData = re.sub('<mi0 q="'+str(measCharge)+'" m="'+measNuclide, '<mi0 q="'+str(newMeasCharge)+'" m="'+newMeasNuclide, measData)
-    measFile.close()
-    measFile = open('Mass.xml', 'w')
-    measFile.write(measData)
-    measFile.close()
+    try:
+        measFile = open('Mass.xml', 'r')
+        measData = measFile.read()
+        measData = re.sub('<mi0 q="'+str(measCharge)+'" m="'+measNuclide, '<mi0 q="'+str(newMeasCharge)+'" m="'+newMeasNuclide, measData)
+        measFile.close()
+        measFile = open('Mass.xml', 'w')
+        measFile.write(measData)
+        measFile.close()
+        if newMeasTime == "":
+            msg = QtWidgets.QMessageBox()
+            title = "Missing accumulation time"
+            message = "No accumulation time has been entered. Please enter an accumulation time."
+            msg.setWindowTitle(title)
+            msg.setText(message)
+            msg.exec_()
+        else:
+            NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime)
+    except FileNotFoundError:
+        string = "measurement"
+        ShowBox(string)
 
     iw.close()
-    NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime)
 
 def NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime):
     global measNuclide, measCharge, measTime
@@ -257,25 +279,41 @@ def CancelMeasurement(self):
     
 def CalibrateInfo(self):
     global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass
-    calibFile = open('Calibration.xml', 'r')
-    calibData = calibFile.readlines()
-    calibFile.close()
-    calibNuclide = (calibData[1].split('<nuclide>')[1]).split('</nuclide>')[0]
-    calibCharge = int((calibData[2].split('<charge>')[1]).split('</charge>')[0])
-    calibFreqC = float((calibData[4].split('<freq>')[1]).split('</freq>')[0])
-    calibFreqPlus = float((calibData[12].split('<freq>')[1]).split('</freq>')[0])
-    calibFreqMinus = float((calibData[20].split('<freq>')[1]).split('</freq>')[0])
+    calibNuclide = "1K39"
+    calibCharge = 1
+    calibFreqC = 3688955.2387
+    calibFreqPlus = 3686369.6998
+    calibFreqMinus = 2585.5389
+    try:
+        calibFile = open('Calibration.xml', 'r')
+        calibData = calibFile.readlines()
+        calibFile.close()
+        calibNuclide = (calibData[1].split('<nuclide>')[1]).split('</nuclide>')[0]
+        calibCharge = int((calibData[2].split('<charge>')[1]).split('</charge>')[0])
+        calibFreqC = float((calibData[4].split('<freq>')[1]).split('</freq>')[0])
+        calibFreqPlus = float((calibData[12].split('<freq>')[1]).split('</freq>')[0])
+        calibFreqMinus = float((calibData[20].split('<freq>')[1]).split('</freq>')[0])
+
+    except FileNotFoundError:
+        string = "calibration"
+        ShowBox(string)
 
     calibMass = CalibrationMass(calibNuclide, calibCharge)
 
 def MeasInfo(self):
     global measNuclide, measCharge, measTime, expFreq
-    measFile = open('Mass.xml', 'r')
-    measData = measFile.readlines()
-    measFile.close()
-    measNuclide = (measData[2].split('m="')[1]).split('"/>')[0]
-    measCharge = int((measData[2].split('q="')[1]).split('"')[0])
-    #measTime = 0
+    measNuclide = "1K39"
+    measCharge = 1
+    try:
+        measFile = open('Mass.xml', 'r')
+        measData = measFile.readlines()
+        measFile.close()
+        measNuclide = (measData[2].split('m="')[1]).split('"/>')[0]
+        measCharge = int((measData[2].split('q="')[1]).split('"')[0])
+
+    except FileNotFoundError:
+        string = "measurement"
+        ShowBox(string)
     ui.Species.setText(measNuclide)
 
     expFreq = ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge)
