@@ -84,11 +84,11 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.Species.move(570, 30)
         self.Species.setObjectName("Species")
         self.Species.setStyleSheet("font:30pt")
-        self.Species.setText("<sup>39</sup>K")
         self.actionLoad_New_Reference = fileMenu.addAction("Load New Reference")
         self.actionLoad_New_Measurement = fileMenu.addAction("Load New Measurement")
         self.actionExit = fileMenu.addAction("Exit")
-        self.actionCalibrate = infoMenu.addAction("Calibrate")
+        self.actionCalibrate = infoMenu.addAction("Calibration")
+        self.actionMeasurement = infoMenu.addAction("Measurement")
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.retranslateUi(MainWindow)

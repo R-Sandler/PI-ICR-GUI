@@ -11,6 +11,7 @@ from mainwindow import Ui_MainWindow
 import pyqtgraph as pg
 from Definitions import *
 from calibratewindow import Ui_CalibrateWindow
+from isotopewindow import Ui_IsotopeWindow
 
 
 def LoadReference(self):
@@ -128,20 +129,33 @@ def Enter(self):
             string = "measurement"
             ShowBox(string)
         else:
-            mindex = ui.measClusterSelect.currentIndex()
-            N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex)
-            ui.N.setText(str(N))
-            ui.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
-            ui.Theta.setText(str(theta) + " (" + str(dtheta) + ")")
+            if measTime == "":
+                string = "accumulation time"
+                ShowBox(string)
+            else:
+                mindex = ui.measClusterSelect.currentIndex()
+                N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime)
+                ui.N.setText(str(N))
+                ui.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
+                ui.Theta.setText(str(theta) + " (" + str(dtheta) + ")")
             
 
 def ShowBox(string):
     msg = QtWidgets.QMessageBox()
-    title = "Missing "+string+" file"
-    message = "No "+string+" file is selected. Please select a "+string+" file."
+    title = "Missing "+string
+    message = "No "+string+" is selected. Please select a "+string+"."
     msg.setWindowTitle(title)
     msg.setText(message)
     msg.exec_()
+
+def MeasurementSelect(self):
+    global iw
+    iw = Ui_IsotopeWindow()
+    iw.Nuclide.setText(measNuclide)
+    iw.Charge.setText(str(measCharge))
+    iw.acceptButton.clicked.connect(AcceptMeasurement)
+    iw.cancelButton.clicked.connect(CancelMeasurement)
+    iw.exec_()
 
 def CalibrateSelect(self):
     global cw
@@ -202,17 +216,43 @@ def AcceptCalibration(self):
     
 
 def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus):
+    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass
     calibNuclide = newNuclide
     calibCharge = int(newCharge)
     calibFreqC = float(newFreqC)
     calibFreqPlus = float(newFreqPlus)
     calibFreqMinus = float(newFreqMinus)
     calibMass = CalibrationMass(calibNuclide, calibCharge)
-
     
 
 def CancelCalibration(self):
     cw.close()
+
+def AcceptMeasurement(self):
+    newMeasNuclide = iw.Nuclide.text()
+    newMeasCharge = iw.Charge.text()
+    newMeasTime = iw.tAcc.text()
+    measFile = open('Mass.xml', 'r')
+    measData = measFile.read()
+    measData = re.sub('<mi0 q="'+str(measCharge)+'" m="'+measNuclide, '<mi0 q="'+str(newMeasCharge)+'" m="'+newMeasNuclide, measData)
+    measFile.close()
+    measFile = open('Mass.xml', 'w')
+    measFile.write(measData)
+    measFile.close()
+
+    iw.close()
+    NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime)
+
+def NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime):
+    global measNuclide, measCharge, measTime
+    measNuclide = newMeasNuclide
+    measCharge = int(newMeasCharge)
+    measTime = float(newMeasTime)
+    ui.Species.setText(measNuclide)
+    expFreq = ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge)
+
+def CancelMeasurement(self):
+    iw.close()
 
     
 def CalibrateInfo(self):
@@ -226,7 +266,19 @@ def CalibrateInfo(self):
     calibFreqPlus = float((calibData[12].split('<freq>')[1]).split('</freq>')[0])
     calibFreqMinus = float((calibData[20].split('<freq>')[1]).split('</freq>')[0])
 
-    calibMass = CalibrationMass(calibNuclide, calibCharge),10
+    calibMass = CalibrationMass(calibNuclide, calibCharge)
+
+def MeasInfo(self):
+    global measNuclide, measCharge, measTime, expFreq
+    measFile = open('Mass.xml', 'r')
+    measData = measFile.readlines()
+    measFile.close()
+    measNuclide = (measData[2].split('m="')[1]).split('"/>')[0]
+    measCharge = int((measData[2].split('q="')[1]).split('"')[0])
+    #measTime = 0
+    ui.Species.setText(measNuclide)
+
+    expFreq = ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge)
 
 def Exit(self):
     sys.exit(app.exec_())
@@ -242,6 +294,7 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     CalibrateInfo(MainWindow)
+    MeasInfo(MainWindow)
     MainWindow.show()
 
     #When the "calculate" button is clicked, go do stuff
@@ -256,5 +309,6 @@ if __name__ == "__main__":
     ui.actionLoad_New_Measurement.triggered.connect(LoadMeasurement)
     ui.actionExit.triggered.connect(Exit)
     ui.actionCalibrate.triggered.connect(CalibrateSelect)
+    ui.actionMeasurement.triggered.connect(MeasurementSelect)
 
     ui.sys.exit(app.exec_())

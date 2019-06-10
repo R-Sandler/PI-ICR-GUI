@@ -30,10 +30,10 @@ def Calculator(xs, xserr, ys, yserr, cluster_of_interest):
 
     return radius, radius_uncertainty, angle, angle_uncertainty
 
-def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex):
+def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, frequency_guess, time):
 
-    frequency_guess = 781283.9864
-    time = 345009
+    #frequency_guess = 781283.9864
+    #time = 345009
 
     rot_time = 1000000/frequency_guess
     N = int(round(time/rot_time))
@@ -56,15 +56,11 @@ def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex
 def CalibrationMass(calibNuclide, calibCharge):
     AMEFile = open('ame2016.txt', 'r')
     AMEData = AMEFile.readlines()
-    #AMEData=[]
-    #for line in AMEFile.readlines():
-        #AMEData.extend(line.split("\t"))
     for i in range(0,len(AMEData)):
         AMEData[i] = AMEData[i].split("\t")
     AMEFile.close()
 
-    partition = 0
-    count = 0
+
     #if calibNuclide.find(":")>-1:
         #The nuclide is actually a molecule. Crap
     for i in range(0, len(calibNuclide)):
@@ -85,9 +81,40 @@ def CalibrationMass(calibNuclide, calibCharge):
                 calibME = float(AMEData[i][3])
 
     calibNucleons = float(calibNucleons)           
-    calibMass = round(calibNucleons+(calibME/931494.0954),8)
+    calibMass = round(calibCount/calibCharge*(calibNucleons+(calibME/931494.0954)),8)
 
     return calibMass
+
+def ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge):
+    AMEFile = open('ame2016.txt', 'r')
+    AMEData = AMEFile.readlines()
+    for i in range(0,len(AMEData)):
+        AMEData[i] = AMEData[i].split("\t")
+    AMEFile.close()
+
+    #if calibNuclide.find(":")>-1:
+        #The nuclide is actually a molecule. Crap
+    for i in range(0, len(measNuclide)):
+        if measNuclide[i].isalpha():
+            speciesStart = i
+            if measNuclide[i+1].isalpha():
+                speciesEnd = i+2
+            else:
+                speciesEnd = i+1
+    measCount = int(measNuclide[0:speciesStart])
+    measSpecies = measNuclide[speciesStart:speciesEnd]
+    measNucleons = measNuclide[speciesEnd:len(measNuclide)]
+
+    for i in range(0, len(AMEData)):
+        if AMEData[i][2] == measSpecies:
+            if AMEData[i][1] == measNucleons:
+                measME = float(AMEData[i][3])
+
+    measNucleons = float(measNucleons)
+    measMass = round(measCount/measCharge*(measNucleons+(measME/931494.0954)),8)
+    expFreq = calibFreqC*calibMass/measMass
+
+    return expFreq
 
 def poswithtof(name, tlow, thigh, *args):
 
