@@ -31,7 +31,7 @@ class Ui_IsotopeWindow(QtGui.QDialog):
         self.cancelButton.setGeometry(QtCore.QRect(10, 140, 210, 50))
         self.cancelButton.setObjectName("cancelButton")
         self.tAcc = QtWidgets.QLineEdit(IsotopeWindow)
-        self.tAcc.setGeometry(QtCore.QRect(50, 40, 130, 20))
+        self.tAcc.setGeometry(QtCore.QRect(70, 40, 150, 20))
         self.tAcc.setObjectName("tAcc")
 
 
@@ -43,6 +43,6 @@ class Ui_IsotopeWindow(QtGui.QDialog):
         IsotopeWindow.setWindowTitle(_translate("IsotopeWindow", "Measurement"))
         self.label.setText(_translate("IsotopeWindow", "Nuclide"))
         self.label_2.setText(_translate("IsotopeWindow", "Charge"))
-        self.label_3.setText(_translate("IsotopeWindow", "t acc"))
+        self.label_3.setText(_translate("IsotopeWindow", "t acc (us)"))
         self.acceptButton.setText(_translate("IsotopeWindow", "Accept"))
         self.cancelButton.setText(_translate("IsotopeWindow", "Cancel"))
