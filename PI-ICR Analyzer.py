@@ -207,6 +207,7 @@ def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinu
     calibFreqC = float(newFreqC)
     calibFreqPlus = float(newFreqPlus)
     calibFreqMinus = float(newFreqMinus)
+    calibMass = CalibrationMass(calibNuclide, calibCharge)
 
     
 
@@ -215,7 +216,7 @@ def CancelCalibration(self):
 
     
 def CalibrateInfo(self):
-    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus
+    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass
     calibFile = open('Calibration.xml', 'r')
     calibData = calibFile.readlines()
     calibFile.close()
@@ -225,6 +226,7 @@ def CalibrateInfo(self):
     calibFreqPlus = float((calibData[12].split('<freq>')[1]).split('</freq>')[0])
     calibFreqMinus = float((calibData[20].split('<freq>')[1]).split('</freq>')[0])
 
+    calibMass = CalibrationMass(calibNuclide, calibCharge),10
 
 def Exit(self):
     sys.exit(app.exec_())

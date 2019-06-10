@@ -5,6 +5,7 @@ import fnmatch
 from scipy import *
 import pandas as pd
 import re
+import csv
 import lmfit
 import matplotlib.pyplot as plt
 from lmfit.models import GaussianModel
@@ -52,7 +53,41 @@ def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex
     frequency_uncertainty = round(frequency_uncertainty, 4)
     return N, theta, theta_uncertainty, frequency, frequency_uncertainty
 
+def CalibrationMass(calibNuclide, calibCharge):
+    AMEFile = open('ame2016.txt', 'r')
+    AMEData = AMEFile.readlines()
+    #AMEData=[]
+    #for line in AMEFile.readlines():
+        #AMEData.extend(line.split("\t"))
+    for i in range(0,len(AMEData)):
+        AMEData[i] = AMEData[i].split("\t")
+    AMEFile.close()
 
+    partition = 0
+    count = 0
+    #if calibNuclide.find(":")>-1:
+        #The nuclide is actually a molecule. Crap
+    for i in range(0, len(calibNuclide)):
+        if calibNuclide[i].isalpha():
+            speciesStart = i
+            if calibNuclide[i+1].isalpha():
+                speciesEnd = i+2
+            else:
+                speciesEnd = i+1
+
+    calibCount = int(calibNuclide[0:speciesStart])
+    calibSpecies = calibNuclide[speciesStart:speciesEnd]
+    calibNucleons = calibNuclide[speciesEnd:len(calibNuclide)]
+
+    for i in range(0, len(AMEData)):
+        if AMEData[i][2] == calibSpecies:
+            if AMEData[i][1] == calibNucleons:
+                calibME = float(AMEData[i][3])
+
+    calibNucleons = float(calibNucleons)           
+    calibMass = round(calibNucleons+(calibME/931494.0954),8)
+
+    return calibMass
 
 def poswithtof(name, tlow, thigh, *args):
 
