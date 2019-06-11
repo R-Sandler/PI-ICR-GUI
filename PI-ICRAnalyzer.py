@@ -95,11 +95,11 @@ def refCluster(index):
     ui.refRadius.setText(str(radius)+" ("+str(dradius)+")")
     ui.refPhi.setText(str(phi)+" ("+str(dphi)+")")
     #If the other plot is loaded, recalculate the frequency
-    text = self.measPhi.text()
+    text = ui.measPhi.text()
     if text == "":
         text = "Nope"
     else:
-        self.Enter()
+        Enter
 
 
 def measCluster(index):
@@ -114,7 +114,7 @@ def measCluster(index):
     if text == "":
         text = "Nope"
     else:
-        self.Enter()
+        Enter
 
 
 def Enter(self):
@@ -262,14 +262,23 @@ def AcceptMeasurement(self):
             msg.exec_()
         else:
             NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime)
+            iw.close()
+            text = ui.measPhi.text()
+            if text == "":
+                text = "Nope"
+            else:
+                text = ui.refPhi.text()
+                if text == "":
+                    text = "Nope"
+                else:
+                    Enter
     except FileNotFoundError:
         string = "measurement"
         ShowBox(string)
-
-    iw.close()
+   
 
 def NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime):
-    global measNuclide, measCharge, measTime
+    global measNuclide, measCharge, measTime, expFreq
     measNuclide = newMeasNuclide
     measCharge = int(newMeasCharge)
     measTime = float(newMeasTime)
