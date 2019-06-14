@@ -23,7 +23,7 @@ def LoadReference(self):
         string = "reference"
         ShowBox(string)
     else:
-        global rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters
+        global rxs, rxserr, rys, ryserr, rips, rxkeep, rykeep, rX, rnum, rlabels, rclusters, xCenter, yCenter
         ui.refClusterSelect.clear()
         ui.refGraph.clear()
         rXPOS,rYPOS,rTOF,rSUMX,rSUMY,rdf2 = poswithtof(refFile, -35000, -25000)
@@ -37,7 +37,7 @@ def LoadReference(self):
         #Send the cluster information on to be plotted in the GUI
         CreateRefPlot(self, rX, rlabels, rclusters)
         cluster_of_interest = 0
-        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest)
+        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest, xCenter, yCenter)
         ui.refRadius.setText(str(radius)+" ("+str(dradius)+")")
         ui.refPhi.setText(str(phi)+" ("+str(dphi)+")")
     
@@ -63,7 +63,7 @@ def LoadMeasurement(self):
         #Send the cluster information on to be plotted
         CreateMeasPlot(self, X, labels, clusters)
         cluster_of_interest = 0
-        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest)
+        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest, xCenter, yCenter)
         ui.measRadius.setText(str(radius)+" ("+str(dradius)+")")
         ui.measPhi.setText(str(phi)+" ("+str(dphi)+")")
 
@@ -91,33 +91,29 @@ def refCluster(index):
     #Recalculate the radius and angle of the plot for the selected cluster
     ui.refRadius.clear()
     ui.refPhi.clear()
-    radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, index)
+    radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, index, xCenter, yCenter)
     ui.refRadius.setText(str(radius)+" ("+str(dradius)+")")
     ui.refPhi.setText(str(phi)+" ("+str(dphi)+")")
     #If the other plot is loaded, recalculate the frequency
     text = ui.measPhi.text()
-    if text == "":
-        text = "Nope"
-    else:
-        Enter
+    if text != "":
+        Enter()
 
 
 def measCluster(index):
     #Recalculate the radius and angle of the plot for the selected cluster
     ui.measRadius.clear()
     ui.measPhi.clear()
-    radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, index)
+    radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, index, xCenter, yCenter)
     ui.measRadius.setText(str(radius)+" ("+str(dradius)+")")
     ui.measPhi.setText(str(phi)+" ("+str(dphi)+")")
     #If the other plot is loaded, recalculate the frequency
     text = ui.refPhi.text()
-    if text == "":
-        text = "Nope"
-    else:
-        Enter
+    if text != "":
+        Enter()
 
 
-def Enter(self):
+def Enter():
     #When the "Calculate" button is clicked, check that both files are loaded
     #then calculate the frequency
     global measTime
@@ -143,13 +139,78 @@ def Enter(self):
                 msg.exec_()
             else:
                 mindex = ui.measClusterSelect.currentIndex()
-                N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime)
+                N, theta, dtheta, frequency, dfrequency = Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime, xCenter, yCenter)
                 ui.N.setText(str(N))
                 ui.Frequency.setText(str(frequency) + " (" + str(dfrequency) +")")
                 ui.Theta.setText(str(theta) + " (" + str(dtheta) + ")")
+def AddN():
+    #Recalculate the frequency using the new N
+    global measTime
+    text = ui.N.text()
+    newN = int(text)+1
+    text = ui.refPhi.text()
+    if text == "":
+        string = "reference"
+        ShowBox(string)
+    else:
+        rindex = ui.refClusterSelect.currentIndex()
+        text = ui.measPhi.text()
+        if text == "":
+            string = "measurement"
+            ShowBox(string)
+        else:
+            try: measTime
+            except NameError: measTime = "Missing"
+            if measTime == "Missing":
+                msg = QtWidgets.QMessageBox()
+                title = "Missing accumulation time"
+                message = "No accumulation time has been entered. Please enter an accumulation time."
+                msg.setWindowTitle(title)
+                msg.setText(message)
+                msg.exec_()
+            else:
+                mindex = ui.measClusterSelect.currentIndex()
+                newTheta, newDtheta, newFrequency, newDfrequency = AddSubN(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime, xCenter, yCenter, newN)
+                ui.N.setText(str(newN))
+                ui.Frequency.setText(str(newFrequency) + " (" + str(newDfrequency) +")")
+                ui.Theta.setText(str(newTheta) + " (" + str(newDtheta) + ")")
+
+def SubtractN():
+    #Recalculate the frequency using the new N
+    global measTime
+    text = ui.N.text()
+    newN = int(text)-1
+    text = ui.refPhi.text()
+    if text == "":
+        string = "reference"
+        ShowBox(string)
+    else:
+        rindex = ui.refClusterSelect.currentIndex()
+        text = ui.measPhi.text()
+        if text == "":
+            string = "measurement"
+            ShowBox(string)
+        else:
+            try: measTime
+            except NameError: measTime = "Missing"
+            if measTime == "Missing":
+                msg = QtWidgets.QMessageBox()
+                title = "Missing accumulation time"
+                message = "No accumulation time has been entered. Please enter an accumulation time."
+                msg.setWindowTitle(title)
+                msg.setText(message)
+                msg.exec_()
+            else:
+                mindex = ui.measClusterSelect.currentIndex()
+                newTheta, newDtheta, newFrequency, newDfrequency = AddSubN(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, expFreq, measTime, xCenter, yCenter, newN)
+                ui.N.setText(str(newN))
+                ui.Frequency.setText(str(newFrequency) + " (" + str(newDfrequency) +")")
+                ui.Theta.setText(str(newTheta) + " (" + str(newDtheta) + ")")
+    
             
 
 def ShowBox(string):
+    #The error mesage for missing files
     msg = QtWidgets.QMessageBox()
     title = "Missing "+string+" file"
     message = "No "+string+" file is selected. Please select a "+string+" file."
@@ -158,15 +219,21 @@ def ShowBox(string):
     msg.exec_()
 
 def MeasurementSelect(self):
+    #The widget for changing information about the measurement,
+    #such as the species of interest
     global iw
     iw = Ui_IsotopeWindow()
     iw.Nuclide.setText(measNuclide)
     iw.Charge.setText(str(measCharge))
+    iw.Nuclide.returnPressed.connect(AcceptMeasurement)
+    iw.Charge.returnPressed.connect(AcceptMeasurement)
     iw.acceptButton.clicked.connect(AcceptMeasurement)
     iw.cancelButton.clicked.connect(CancelMeasurement)
     iw.exec_()
 
 def CalibrateSelect(self):
+    #The widget for changing information about the calibration,
+    #such as the species of interest
     global cw
     cw = Ui_CalibrateWindow()
     cw.Nuclide.setText(calibNuclide)
@@ -174,6 +241,12 @@ def CalibrateSelect(self):
     cw.freqC.setText(str(calibFreqC))
     cw.freqPlus.setText(str(calibFreqPlus))
     cw.freqMinus.setText(str(calibFreqMinus))
+    cw.xCenter.setText(str(xCenter))
+    cw.yCenter.setText(str(yCenter))
+    cw.xCenter.returnPressed.connect(AcceptCalibration)
+    cw.yCenter.returnPressed.connect(AcceptCalibration)
+    cw.Nuclide.returnPressed.connect(AcceptCalibration)
+    cw.Charge.returnPressed.connect(AcceptCalibration)
     cw.freqCCalc.clicked.connect(CalibrateCalcC)
     cw.freqPlusCalc.clicked.connect(CalibrateCalcPlus)
     cw.freqMinusCalc.clicked.connect(CalibrateCalcMinus)
@@ -182,6 +255,8 @@ def CalibrateSelect(self):
     cw.exec_()
 
 def CalibrateCalcC(self):
+    #These three functions recalculate a frequency in the calibration file
+    #when a button is pushed
     newFreqPlus = float(cw.freqPlus.text())
     newFreqMinus = float(cw.freqMinus.text())
     newFreqC = newFreqPlus + newFreqMinus
@@ -189,6 +264,8 @@ def CalibrateCalcC(self):
     cw.freqC.setText(str(newFreqC))
 
 def CalibrateCalcPlus(self):
+    #These three functions recalculate a frequency in the calibration file
+    #when a button is pushed
     newFreqC = float(cw.freqC.text())
     newFreqMinus = float(cw.freqMinus.text())
     newFreqPlus = newFreqC - newFreqMinus
@@ -196,18 +273,25 @@ def CalibrateCalcPlus(self):
     cw.freqPlus.setText(str(newFreqPlus))
 
 def CalibrateCalcMinus(self):
+    #These three functions recalculate a frequency in the calibration file
+    #when a button is pushed
     newFreqPlus = float(cw.freqPlus.text())
     newFreqC = float(cw.freqC.text())
     newFreqMinus = newFreqC - newFreqPlus
     cw.freqMinus.clear()
     cw.freqMinus.setText(str(newFreqMinus))
 
-def AcceptCalibration(self):
+def AcceptCalibration():
+    #When the "accept" button is clicked on the calibration widget,
+    #get the new information, print it to the file, and pass it along
     newNuclide = cw.Nuclide.text()
     newCharge = cw.Charge.text()
     newFreqC = cw.freqC.text()
     newFreqPlus = cw.freqPlus.text()
     newFreqMinus = cw.freqMinus.text()
+    newXCenter = cw.xCenter.text()
+    newYCenter = cw.yCenter.text()
+    
     try:
         calibFile = open('Calibration.xml', 'r')
         calibData = calibFile.read()
@@ -220,7 +304,7 @@ def AcceptCalibration(self):
         calibFile = open('Calibration.xml', 'w')
         calibFile.write(calibData)
         calibFile.close()
-        NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus)
+        NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus, newXCenter, newYCenter)
     except FileNotFoundError:
         string = "calibration"
         ShowBox(string)
@@ -228,20 +312,42 @@ def AcceptCalibration(self):
     cw.close()
     
 
-def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus):
-    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass
+def NewCalibrationInfo(newNuclide, newCharge, newFreqC, newFreqPlus, newFreqMinus, newXCenter, newYCenter):
+    #This changes the global calibration variables and recalculates
+    #the reference and measurement angles
+    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass, xCenter, yCenter
     calibNuclide = newNuclide
     calibCharge = int(newCharge)
     calibFreqC = float(newFreqC)
     calibFreqPlus = float(newFreqPlus)
     calibFreqMinus = float(newFreqMinus)
     calibMass = CalibrationMass(calibNuclide, calibCharge)
-    
+    xCenter = float(newXCenter)
+    yCenter = float(newYCenter)
+    text = ui.refPhi.text()
+    if text != "":
+        cluster_of_interest = ui.refClusterSelect.currentIndex()
+        radius, dradius, phi, dphi = Calculator(rxs, rxserr, rys, ryserr, cluster_of_interest, xCenter, yCenter)
+        ui.refRadius.setText(str(radius)+" ("+str(dradius)+")")
+        ui.refPhi.setText(str(phi)+" ("+str(dphi)+")")
+    text = ui.measPhi.text()
+    if text != "":
+        cluster_of_interest = ui.measClusterSelect.currentIndex()
+        radius, dradius, phi, dphi = Calculator(mxs, mxserr, mys, myserr, cluster_of_interest, xCenter, yCenter)
+        ui.measRadius.setText(str(radius)+" ("+str(dradius)+")")
+        ui.measPhi.setText(str(phi)+" ("+str(dphi)+")")
+    text = ui.Theta.text()
+    if text != "":
+        Enter()
 
-def CancelCalibration(self):
+def CancelCalibration():
+    #Close the calibration widget without doing anything if the "cancel"
+    #button is clicked
     cw.close()
 
-def AcceptMeasurement(self):
+def AcceptMeasurement():
+    #Get the new information from the "measurement" widget and
+    #save it in the file
     newMeasNuclide = iw.Nuclide.text()
     newMeasCharge = iw.Charge.text()
     newMeasTime = iw.tAcc.text()
@@ -264,20 +370,18 @@ def AcceptMeasurement(self):
             NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime)
             iw.close()
             text = ui.measPhi.text()
-            if text == "":
-                text = "Nope"
-            else:
+            if text != "":
                 text = ui.refPhi.text()
-                if text == "":
-                    text = "Nope"
-                else:
-                    Enter
+                if text != "":
+                    Enter()
     except FileNotFoundError:
         string = "measurement"
         ShowBox(string)
    
 
 def NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime):
+    #Change the measurement global variables and recalculate the expected
+    #frequency of the measured ion
     global measNuclide, measCharge, measTime, expFreq
     measNuclide = newMeasNuclide
     measCharge = int(newMeasCharge)
@@ -285,17 +389,22 @@ def NewMeasurementInfo(newMeasNuclide, newMeasCharge, newMeasTime):
     ui.Species.setText(measNuclide)
     expFreq = ExpectedFrequency(calibMass, calibFreqC, measNuclide, measCharge)
 
-def CancelMeasurement(self):
+def CancelMeasurement():
+    #Close the measurement widget without doing anything if the "cancel"
+    #button is clicked
     iw.close()
 
     
 def CalibrateInfo(self):
-    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass
+    #Read in the information from the calibrate file before starting
+    global calibNuclide, calibCharge, calibFreqC, calibFreqPlus, calibFreqMinus, calibMass, xCenter, yCenter
     calibNuclide = "1K39"
     calibCharge = 1
     calibFreqC = 3688955.2387
     calibFreqPlus = 3686369.6998
     calibFreqMinus = 2585.5389
+    xCenter = -2
+    yCenter = -2
     try:
         calibFile = open('Calibration.xml', 'r')
         calibData = calibFile.readlines()
@@ -313,6 +422,7 @@ def CalibrateInfo(self):
     calibMass = CalibrationMass(calibNuclide, calibCharge)
 
 def MeasInfo(self):
+    #Read in the info from the measurement file before starting
     global measNuclide, measCharge, measTime, expFreq
     measNuclide = "1K39"
     measCharge = 1
@@ -349,6 +459,8 @@ if __name__ == "__main__":
 
     #When the "calculate" button is clicked, go do stuff
     ui.EnterButton.clicked.connect(Enter)
+    ui.nPlus.clicked.connect(AddN)
+    ui.nMinus.clicked.connect(SubtractN)
 
     #When a combobox is used, recalculate the information for that file (not yet implemented)
     ui.refClusterSelect.activated.connect(refCluster)

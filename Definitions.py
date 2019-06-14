@@ -16,32 +16,32 @@ from lmfit.models import ExponentialGaussianModel
 from sklearn.cluster import MeanShift
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-def Calculator(xs, xserr, ys, yserr, cluster_of_interest):
+def Calculator(xs, xserr, ys, yserr, cluster_of_interest, xCenter, yCenter):
 
-    radius = np.sqrt(np.square(xs[cluster_of_interest]+1.94)+np.square(ys[cluster_of_interest]-3.77))
+    radius = np.sqrt(np.square(xs[cluster_of_interest]-xCenter)+np.square(ys[cluster_of_interest]-yCenter))
     radius = round(radius, 3)
     radius_uncertainty = np.sqrt(np.square(xserr[cluster_of_interest])+np.square(yserr[cluster_of_interest]))
     radius_uncertainty = round(radius_uncertainty, 3)
 
-    angle = m.atan2(3.77-ys[cluster_of_interest],-1.94-xs[cluster_of_interest])
-    angle_uncertainty = 1/(np.square(3.77-ys[cluster_of_interest])+np.square(-1.94-xs[cluster_of_interest]))*np.sqrt(np.square(-1.94-xs[cluster_of_interest])*np.square(0.05)+np.square(xs[cluster_of_interest]+1.94)*np.square(yserr[cluster_of_interest])+np.square(ys[cluster_of_interest]-3.77)*np.square(0.05)+np.square(3.77-ys[cluster_of_interest])*np.square(xserr[cluster_of_interest]))
+    angle = m.atan2(yCenter-ys[cluster_of_interest],xCenter-xs[cluster_of_interest])
+    angle_uncertainty = 1/(np.square(yCenter-ys[cluster_of_interest])+np.square(xCenter-xs[cluster_of_interest]))*np.sqrt(np.square(xCenter-xs[cluster_of_interest])*np.square(0.05)+np.square(xs[cluster_of_interest]-xCenter)*np.square(yserr[cluster_of_interest])+np.square(ys[cluster_of_interest]-yCenter)*np.square(0.05)+np.square(yCenter-ys[cluster_of_interest])*np.square(xserr[cluster_of_interest]))
     angle = round(angle, 3)
     angle_uncertainty = round(angle_uncertainty, 3)
     #print(rxs)
 
     return radius, radius_uncertainty, angle, angle_uncertainty
 
-def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, frequency_guess, time):
+def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, frequency_guess, time, xCenter, yCenter):
 
     #frequency_guess = 781283.9864
     #time = 345009
 
     rot_time = 1000000/frequency_guess
     N = int(round(time/rot_time))
-    radius = np.sqrt(np.square(mxs[mindex]+1.94)+np.square(mys[mindex]-3.77))
+    radius = np.sqrt(np.square(mxs[mindex]-xCenter)+np.square(mys[mindex]-yCenter))
     
-    theta = m.atan2(3.77-mys[mindex],-1.94-mxs[mindex])-m.atan2(3.77-rys[rindex],-1.94-rxs[rindex])
-    theta_uncertainty = 1/(np.square(3.77-mys[mindex])+np.square(-1.94-mxs[mindex]))*np.sqrt(np.square(-1.94-mxs[mindex])*np.square(0.05)+np.square(mxs[mindex]+1.94)*np.square(myserr[mindex])+np.square(mys[mindex]-3.77)*np.square(0.05)+np.square(3.77-mys[mindex])*np.square(mxserr[mindex]))
+    theta = m.atan2(yCenter-mys[mindex],xCenter-mxs[mindex])-m.atan2(yCenter-rys[rindex],xCenter-rxs[rindex])
+    theta_uncertainty = 1/(np.square(yCenter-mys[mindex])+np.square(xCenter-mxs[mindex]))*np.sqrt(np.square(xCenter-mxs[mindex])*np.square(0.05)+np.square(mxs[mindex]-xCenter)*np.square(myserr[mindex])+np.square(mys[mindex]-yCenter)*np.square(0.05)+np.square(yCenter-mys[mindex])*np.square(mxserr[mindex]))
     if theta<0:
         theta = theta+2*pi
         N = N-1
@@ -53,6 +53,27 @@ def Frequency(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex
     frequency = round(frequency, 4)
     frequency_uncertainty = round(frequency_uncertainty, 4)
     return N, theta, theta_uncertainty, frequency, frequency_uncertainty
+
+def AddSubN(rxs, rxserr, rys, ryserr, rindex, mxs, mxserr, mys, myserr, mindex, frequency_guess, time, xCenter, yCenter, newN):
+
+    
+    newRadius = np.sqrt(np.square(mxs[mindex]-xCenter)+np.square(mys[mindex]-yCenter))
+    
+    newTheta = m.atan2(yCenter-mys[mindex],xCenter-mxs[mindex])-m.atan2(yCenter-rys[rindex],xCenter-rxs[rindex])
+    newTheta_uncertainty = 1/(np.square(yCenter-mys[mindex])+np.square(xCenter-mxs[mindex]))*np.sqrt(np.square(xCenter-mxs[mindex])*np.square(0.05)+np.square(mxs[mindex]-xCenter)*np.square(myserr[mindex])+np.square(mys[mindex]-yCenter)*np.square(0.05)+np.square(yCenter-mys[mindex])*np.square(mxserr[mindex]))
+    if newTheta<0:
+        newTheta = newTheta+2*pi
+        newN = newN-1
+    newFrequency = (newTheta+2*pi*newN)/(2*pi*time*0.000001)
+    newFrequency_uncertainty = np.sqrt(np.square(rys[rindex]*rxserr[rindex])+np.square(rxs[rindex]*ryserr[rindex])+np.square(rxs[rindex]*ryserr[rindex])+np.square(rys[rindex]*rxserr[rindex]))/(2*pi*newRadius*newRadius*time*0.000001)
+    
+    newTheta = round(newTheta, 3)
+    newTheta_uncertainty = round(newTheta_uncertainty, 3)
+    newFrequency = round(newFrequency, 4)
+    newFrequency_uncertainty = round(newFrequency_uncertainty, 4)
+    
+    return newTheta, newTheta_uncertainty, newFrequency, newFrequency_uncertainty
+    
 
 def CalibrationMass(calibNuclide, calibCharge):
     try:
